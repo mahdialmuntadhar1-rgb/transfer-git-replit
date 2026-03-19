@@ -4,43 +4,59 @@ import { Language } from '../types'
 import { t } from '../lib/translations'
 
 const CATEGORIES = [
-  { key: 'Dining & Cuisine', icon: '🍽️', en: 'Dining & Cuisine', ar: 'المطاعم والمأكولات', ku: 'چێشتخانە و خواردن' },
-  { key: 'Shopping & Retail', icon: '🛍️', en: 'Shopping & Retail', ar: 'التسوق والتجزئة', ku: 'کڕین و بازاڕ' },
-  { key: 'Entertainment & Events', icon: '🎭', en: 'Entertainment & Events', ar: 'الترفيه والفعاليات', ku: 'شادمانی و ڕووداوەکان' },
-  { key: 'Accommodation & Stay', icon: '🏨', en: 'Accommodation & Stay', ar: 'الإقامة والفنادق', ku: 'ماندووبوون و مێوانخانە' },
-  { key: 'Culture & Heritage', icon: '🏛️', en: 'Culture & Heritage', ar: 'الثقافة والتراث', ku: 'کولتوور و میراس' },
-  { key: 'Business & Services', icon: '💼', en: 'Business & Services', ar: 'الأعمال والخدمات', ku: 'بازرگانی و خزمەتگوزاری' },
-  { key: 'Health & Wellness', icon: '🏥', en: 'Health & Wellness', ar: 'الصحة والعافية', ku: 'تەندروستی و باشبوون' },
-  { key: 'Transport & Mobility', icon: '🚗', en: 'Transport & Mobility', ar: 'النقل والتنقل', ku: 'گواستنەوە و گەیاندن' },
-  { key: 'Public & Essential', icon: '🏢', en: 'Public & Essential', ar: 'الخدمات العامة', ku: 'خزمەتگوزاری گشتی' },
+  { id: 'Restaurant',       icon: '🍽️', label: { en: 'Restaurants',      ar: 'مطاعم',          ku: 'چێشتخانەکان' } },
+  { id: 'Café',             icon: '☕', label: { en: 'Cafes',             ar: 'مقاهي',          ku: 'کافێکان' } },
+  { id: 'Fast Food',        icon: '🍔', label: { en: 'Fast Food',         ar: 'وجبات سريعة',    ku: 'خواردنی خێرا' } },
+  { id: 'Supermarket',      icon: '🛒', label: { en: 'Supermarkets',      ar: 'سوبرماركت',      ku: 'سوپەرمارکت' } },
+  { id: 'Clothing',         icon: '👗', label: { en: 'Clothing',          ar: 'ملابس',          ku: 'جلوبەرگ' } },
+  { id: 'Electronics',      icon: '📱', label: { en: 'Electronics',       ar: 'إلكترونيات',     ku: 'ئەلیکترۆنیک' } },
+  { id: 'Mobile Phones',    icon: '📲', label: { en: 'Mobile Phones',     ar: 'هواتف',          ku: 'مۆبایل' } },
+  { id: 'Pharmacy',         icon: '💊', label: { en: 'Pharmacies',        ar: 'صيدليات',        ku: 'دەرمانخانە' } },
+  { id: 'Clinic',           icon: '🏥', label: { en: 'Clinics',           ar: 'عيادات',         ku: 'کلینیک' } },
+  { id: 'Hospitality',      icon: '🏨', label: { en: 'Hotels',            ar: 'فنادق',          ku: 'ئۆتێل' } },
+  { id: 'Bank',             icon: '🏦', label: { en: 'Banks',             ar: 'بنوك',           ku: 'بانک' } },
+  { id: 'General Store',    icon: '🏪', label: { en: 'General Stores',    ar: 'محلات عامة',     ku: 'دوکانی گشتی' } },
+  { id: 'Car',              icon: '🚗', label: { en: 'Car Services',      ar: 'خدمات السيارات', ku: 'خزمەتی ئۆتۆمبێل' } },
+  { id: 'Fuel Station',     icon: '⛽', label: { en: 'Fuel Stations',     ar: 'محطات وقود',     ku: 'بنزینخانە' } },
+  { id: 'School',           icon: '🎓', label: { en: 'Schools',           ar: 'مدارس',          ku: 'قوتابخانە' } },
+  { id: 'Bakery',           icon: '🥐', label: { en: 'Bakeries',          ar: 'مخابز',          ku: 'نانوایی' } },
+  { id: 'Beauty',           icon: '💅', label: { en: 'Beauty',            ar: 'تجميل',          ku: 'جوانکاری' } },
+  { id: 'Sports',           icon: '💪', label: { en: 'Gyms & Sports',     ar: 'رياضة وصالات',   ku: 'وەرزش و جیم' } },
 ]
 
 interface CategoryGridProps {
   selectedCategory: string
+  selectedGovernorate: string
   language: Language
   onCategoryChange: (category: string) => void
 }
 
-export function CategoryGrid({ selectedCategory, language, onCategoryChange }: CategoryGridProps) {
+export function CategoryGrid({ selectedCategory, selectedGovernorate, language, onCategoryChange }: CategoryGridProps) {
   const [counts, setCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
     async function fetchCounts() {
       const results = await Promise.all(
         CATEGORIES.map(async cat => {
-          const { count } = await supabase
+          let query = supabase
             .from('businesses')
-            .select('id', { count: 'exact', head: true })
-            .ilike('category', `%${cat.key.split(' & ')[0]}%`)
-          return { key: cat.key, count: count || 0 }
+            .select('*', { count: 'exact', head: true })
+            .eq('category', cat.id)
+
+          if (selectedGovernorate && selectedGovernorate !== 'all') {
+            query = query.eq('governorate', selectedGovernorate)
+          }
+
+          const { count } = await query
+          return { id: cat.id, count: count || 0 }
         })
       )
       const map: Record<string, number> = {}
-      results.forEach(r => { map[r.key] = r.count })
+      results.forEach(r => { map[r.id] = r.count })
       setCounts(map)
     }
     fetchCounts()
-  }, [])
+  }, [selectedGovernorate])
 
   return (
     <section className="px-4 py-8">
@@ -48,13 +64,13 @@ export function CategoryGrid({ selectedCategory, language, onCategoryChange }: C
         <h2 className="text-2xl font-bold text-white mb-6">{t(language, 'exploreCategories')}</h2>
         <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {CATEGORIES.map(cat => {
-            const isSelected = selectedCategory === cat.key
-            const label = language === 'ar' ? cat.ar : language === 'ku' ? cat.ku : cat.en
+            const isSelected = selectedCategory === cat.id
+            const label = language === 'ar' ? cat.label.ar : language === 'ku' ? cat.label.ku : cat.label.en
 
             return (
               <button
-                key={cat.key}
-                onClick={() => onCategoryChange(isSelected ? 'all' : cat.key)}
+                key={cat.id}
+                onClick={() => onCategoryChange(isSelected ? 'all' : cat.id)}
                 className="group relative p-4 rounded-2xl border flex flex-col items-center gap-3 transition-all duration-200 cursor-pointer text-center"
                 style={isSelected
                   ? {
@@ -71,8 +87,8 @@ export function CategoryGrid({ selectedCategory, language, onCategoryChange }: C
                 <span className="text-3xl group-hover:scale-110 transition-transform duration-200">{cat.icon}</span>
                 <div>
                   <p className="text-xs sm:text-sm font-semibold text-white leading-tight">{label}</p>
-                  {counts[cat.key] !== undefined && (
-                    <p className="text-xs text-white/50 mt-1">{counts[cat.key].toLocaleString()}</p>
+                  {counts[cat.id] !== undefined && (
+                    <p className="text-xs text-white/50 mt-1">{counts[cat.id].toLocaleString()}</p>
                   )}
                 </div>
               </button>
