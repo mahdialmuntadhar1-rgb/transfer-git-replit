@@ -10,10 +10,10 @@ import { useBusinesses } from './hooks/useBusinesses'
 import { t } from './lib/translations'
 
 const CATEGORY_KEYWORD_MAP: Record<string, string> = {
-  events: 'Entertainment & Events',
-  restaurants: 'Dining & Cuisine',
-  entertainment: 'Entertainment & Events',
-  deals: 'Shopping & Retail',
+  events: 'all',
+  restaurants: 'Restaurant',
+  entertainment: 'all',
+  deals: 'General Store',
 }
 
 export default function App() {
@@ -81,6 +81,7 @@ export default function App() {
 
         <CategoryGrid
           selectedCategory={selectedCategory}
+          selectedGovernorate={selectedCity}
           language={language}
           onCategoryChange={handleCategoryChange}
         />
