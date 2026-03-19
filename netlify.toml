@@ -1,9 +1,4 @@
 [build]
-  command = "npm install && npm run build"
   publish = "dist/public"
 
-[build.environment]
-  NODE_VERSION = "20"
-  NPM_FLAGS = "--legacy-peer-deps"
-  PORT = "3000"
-  BASE_PATH = "/"
+# No build command needed — pre-built files are committed directly
