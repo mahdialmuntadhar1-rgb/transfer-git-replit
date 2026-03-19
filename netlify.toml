@@ -5,3 +5,5 @@
 [build.environment]
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
+  PORT = "3000"
+  BASE_PATH = "/"
